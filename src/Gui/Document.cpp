@@ -912,14 +912,19 @@ void Document::SaveDocFile (Base::Writer &writer) const
     writer.Stream() << writer.ind() << "<ViewProviderData Count=\"" 
                     << d->_ViewProviderMap.size() <<"\">" << std::endl;
 
+    std::map<std::string, std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> > viewMap;
+    // would be nicer with std::transform and lambda?
+	for (std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> pair : d->_ViewProviderMap)
+		viewMap[pair.first->getNameInDocument()] = std::make_pair(pair.first, pair.second);
+
     bool xml = writer.isForceXML();
     //writer.setForceXML(true);
     writer.incInd(); // indentation for 'ViewProvider name'
-    for(it = d->_ViewProviderMap.begin(); it != d->_ViewProviderMap.end(); ++it) {
-        const App::DocumentObject* doc = it->first;
-        ViewProvider* obj = it->second;
+    for(std::pair<std::string, std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> > pair : viewMap) {
+        const App::DocumentObject* doc = pair.second.first;
+        ViewProvider* obj = pair.second.second;
         writer.Stream() << writer.ind() << "<ViewProvider name=\""
-                        << doc->getNameInDocument() << "\" "
+                        << pair.first << "\" "
                         << "expanded=\"" << (doc->testStatus(App::Expand) ? 1:0) << "\"";
         if (obj->hasExtensions())
             writer.Stream() << " Extensions=\"True\"";
