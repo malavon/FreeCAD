@@ -915,7 +915,7 @@ void Document::SaveDocFile (Base::Writer &writer) const
     std::map<std::string, std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> > viewMap;
     // would be nicer with std::transform and lambda?
 	for (std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> pair : d->_ViewProviderMap)
-		viewMap[pair.first->getNameInDocument()] = std::make_pair(pair.first, pair.second);
+		viewMap[pair.first->getNameInDocument()] = pair;
 
     bool xml = writer.isForceXML();
     //writer.setForceXML(true);
@@ -969,29 +969,28 @@ void Document::exportObjects(const std::vector<App::DocumentObject*>& obj, Base:
     writer.Stream() << "<?xml version='1.0' encoding='utf-8'?>" << std::endl;
     writer.Stream() << "<Document SchemaVersion=\"1\">" << std::endl;
 
-    std::map<const App::DocumentObject*,ViewProvider*> views;
-    for (std::vector<App::DocumentObject*>::const_iterator it = obj.begin(); it != obj.end(); ++it) {
-        Document* doc = Application::Instance->getDocument((*it)->getDocument());
-        if (doc) {
-            ViewProvider* vp = doc->getViewProvider(*it);
-            if (vp) views[*it] = vp;
-        }
-    }
+	std::map<std::string, std::pair<const App::DocumentObject*, ViewProvider*> > views;
+	for (App::DocumentObject* o : obj) {
+		Document* doc = Application::Instance->getDocument(o->getDocument());
+		if (doc) {
+			ViewProvider* vp = doc->getViewProvider(o);
+			if (vp) views[o->getNameInDocument()] = std::make_pair(o, vp);
+		}
+	}
 
     // writing the view provider names itself
     writer.incInd(); // indentation for 'ViewProviderData Count'
-    writer.Stream() << writer.ind() << "<ViewProviderData Count=\"" 
-                    << views.size() <<"\">" << std::endl;
+    writer.Stream() << writer.ind() << "<ViewProviderData Count=\""
+					<< views.size() << "\">" << std::endl;
 
     bool xml = writer.isForceXML();
     //writer.setForceXML(true);
     writer.incInd(); // indentation for 'ViewProvider name'
-    std::map<const App::DocumentObject*,ViewProvider*>::const_iterator jt;
-    for (jt = views.begin(); jt != views.end(); ++jt) {
-        const App::DocumentObject* doc = jt->first;
-        ViewProvider* obj = jt->second;
+	for(std::pair<std::string, std::pair<const App::DocumentObject*, ViewProvider*> > pair : views) {
+        const App::DocumentObject* doc = pair.second.first;
+        ViewProvider* obj = pair.second.second;
         writer.Stream() << writer.ind() << "<ViewProvider name=\""
-                        << doc->getNameInDocument() << "\" "
+                        << pair.first << "\" "
                         << "expanded=\"" << (doc->testStatus(App::Expand) ? 1:0) << "\"";
         if (obj->hasExtensions())
             writer.Stream() << " Extensions=\"True\"";
