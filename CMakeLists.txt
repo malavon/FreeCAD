@@ -28,10 +28,10 @@ if(COMMAND cmake_policy)
     endif(POLICY CMP0072)
 endif(COMMAND cmake_policy)
 
-find_program(CCACHE_PROGRAM ccache)  #This check should occur before project()
-if(CCACHE_PROGRAM)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-endif()
+#find_program(CCACHE_PROGRAM ccache)  #This check should occur before project()
+#if(CCACHE_PROGRAM)
+    #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+#endif()
 
 # include local  modules
 include(AddFileDependencies)
@@ -99,7 +99,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANGXX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
 
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-write-strings ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-write-strings -Wno-deprecated-copy ${CMAKE_CXX_FLAGS}")
     INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
     # get linker errors as soon as possible and not at runtime e.g. for modules
