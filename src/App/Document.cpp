@@ -1471,21 +1471,26 @@ void Document::exportObjects(const std::vector<App::DocumentObject*>& obj,
 void Document::writeObjects(const std::vector<App::DocumentObject*>& obj,
                             Base::Writer &writer) const
 {
+	std::map<std::string, App::DocumentObject*> objMap;
+	for (App::DocumentObject* docObj : obj)
+		objMap[docObj->getNameInDocument()] = docObj;
+
     // writing the features types
     writer.incInd(); // indentation for 'Objects count'
     writer.Stream() << writer.ind() << "<Objects Count=\"" << obj.size() <<"\">" << endl;
 
     writer.incInd(); // indentation for 'Object type'
-    std::vector<DocumentObject*>::const_iterator it;
-    for (it = obj.begin(); it != obj.end(); ++it) {
+    std::map<std::string, DocumentObject*>::const_iterator it;
+	for(std::pair<std::string, App::DocumentObject*> pair : objMap) {
+		DocumentObject* dObj = pair.second;
         writer.Stream() << writer.ind() << "<Object "
-        << "type=\"" << (*it)->getTypeId().getName()     << "\" "
-        << "name=\"" << (*it)->getNameInDocument()       << "\" ";
+        << "type=\"" << dObj->getTypeId().getName()     << "\" "
+        << "name=\"" << dObj->getNameInDocument()       << "\" ";
 
         // See DocumentObjectPy::getState
-        if ((*it)->testStatus(ObjectStatus::Touch))
+        if (dObj->testStatus(ObjectStatus::Touch))
             writer.Stream() << "Touched=\"1\" ";
-        if ((*it)->testStatus(ObjectStatus::Error))
+        if (dObj->testStatus(ObjectStatus::Error))
             writer.Stream() << "Invalid=\"1\" ";
         writer.Stream() << "/>" << endl;
     }
@@ -1497,13 +1502,14 @@ void Document::writeObjects(const std::vector<App::DocumentObject*>& obj,
     writer.Stream() << writer.ind() << "<ObjectData Count=\"" << obj.size() <<"\">" << endl;
 
     writer.incInd(); // indentation for 'Object name'
-    for (it = obj.begin(); it != obj.end(); ++it) {
-        writer.Stream() << writer.ind() << "<Object name=\"" << (*it)->getNameInDocument() << "\"";
-        if((*it)->hasExtensions())
+    for(std::pair<std::string, App::DocumentObject*> pair : objMap) {
+		DocumentObject* dObj = pair.second;
+        writer.Stream() << writer.ind() << "<Object name=\"" << dObj->getNameInDocument() << "\"";
+        if(dObj->hasExtensions())
             writer.Stream() << " Extensions=\"True\"";
 
         writer.Stream() << ">" << endl;
-        (*it)->Save(writer);
+		dObj->Save(writer);
         writer.Stream() << writer.ind() << "</Object>" << endl;
     }
 
