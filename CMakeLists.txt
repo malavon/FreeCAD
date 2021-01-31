@@ -8,10 +8,10 @@ if (POLICY CMP0072)
     cmake_policy(SET CMP0072 OLD)
 endif(POLICY CMP0072)
 
-find_program(CCACHE_PROGRAM ccache)  #This check should occur before project()
-if(CCACHE_PROGRAM)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-endif()
+#find_program(CCACHE_PROGRAM ccache)  #This check should occur before project()
+#if(CCACHE_PROGRAM)
+    #set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+#endif()
 
 project(FreeCAD)
 
