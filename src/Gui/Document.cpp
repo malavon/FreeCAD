@@ -1503,7 +1503,7 @@ void Document::SaveDocFile (Base::Writer &writer) const
     std::map<std::string, std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> > viewMap;
     // would be nicer with std::transform and lambda?
 	for (std::pair<const App::DocumentObject*, ViewProviderDocumentObject*> pair : d->_ViewProviderMap)
-		viewMap[pair.first->getNameInDocument()] = std::make_pair(pair.first, pair.second);
+		viewMap[pair.first->getNameInDocument()] = pair;
 
     bool xml = writer.isForceXML();
     //writer.setForceXML(true);
@@ -1550,12 +1550,12 @@ void Document::exportObjects(const std::vector<App::DocumentObject*>& obj, Base:
     writer.Stream() << "<?xml version='1.0' encoding='utf-8'?>" << std::endl;
     writer.Stream() << "<Document SchemaVersion=\"1\">" << std::endl;
 
-    std::map<const App::DocumentObject*,ViewProvider*> views;
-    for (std::vector<App::DocumentObject*>::const_iterator it = obj.begin(); it != obj.end(); ++it) {
-        Document* doc = Application::Instance->getDocument((*it)->getDocument());
+    std::map<std::string, std::pair<const App::DocumentObject*, ViewProvider*> > views;
+    for (App::DocumentObject* o : obj) {
+        Document* doc = Application::Instance->getDocument(o->getDocument());
         if (doc) {
-            ViewProvider* vp = doc->getViewProvider(*it);
-            if (vp) views[*it] = vp;
+            ViewProvider* vp = doc->getViewProvider(o);
+            if (vp) views[o->getExportName()] = std::make_pair(o, vp);
         }
     }
 
@@ -1567,10 +1567,9 @@ void Document::exportObjects(const std::vector<App::DocumentObject*>& obj, Base:
     bool xml = writer.isForceXML();
     //writer.setForceXML(true);
     writer.incInd(); // indentation for 'ViewProvider name'
-    std::map<const App::DocumentObject*,ViewProvider*>::const_iterator jt;
-    for (jt = views.begin(); jt != views.end(); ++jt) {
-        const App::DocumentObject* doc = jt->first;
-        ViewProvider* vp = jt->second;
+    for(std::pair<std::string, std::pair<const App::DocumentObject*, ViewProvider*> > pair : views) {
+        const App::DocumentObject* doc = pair.second.first;
+        ViewProvider* vp = pair.second.second;
         writer.Stream() << writer.ind() << "<ViewProvider name=\""
                         << doc->getExportName() << "\" "
                         << "expanded=\"" << (doc->testStatus(App::Expand) ? 1:0) << "\"";
