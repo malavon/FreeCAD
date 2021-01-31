@@ -1880,7 +1880,7 @@ void Document::writeObjects(const std::vector<App::DocumentObject*>& obj,
     writer.incInd(); // indentation for 'Object type'
 
     if(!isExporting(0)) {
-        for(auto o : obj) {
+        for(DocumentObject* o : obj) {
             const auto &outList = o->getOutList(DocumentObject::OutListNoHidden
                                                 | DocumentObject::OutListNoXLinked);
             writer.Stream() << writer.ind()
@@ -1895,7 +1895,17 @@ void Document::writeObjects(const std::vector<App::DocumentObject*>& obj,
                 writer.Stream() << "\" " FC_ATTR_DEP_ALLOW_PARTIAL << "=\"" << partial;
             writer.Stream() << "\">" << endl;
             writer.incInd();
-            for(auto dep : outList) {
+
+            std::vector<App::DocumentObject*> sorted = outList;
+            std::sort(sorted.begin(), sorted.end(), [](App::DocumentObject* a, App::DocumentObject* b) {
+                if(a->getNameInDocument() == nullptr)
+                    return true;
+                else if(b->getNameInDocument() == nullptr)
+                    return false;
+                else
+                    return strcmp(a->getNameInDocument(), b->getNameInDocument()) < 0;
+            });
+            for(auto dep : sorted) {
                 auto name = dep?dep->getNameInDocument():"";
                 writer.Stream() << writer.ind() << "<" FC_ELEMENT_OBJECT_DEP " "
                     FC_ATTR_DEP_OBJ_NAME "=\"" << (name?name:"") << "\"/>" << endl;
@@ -1905,24 +1915,32 @@ void Document::writeObjects(const std::vector<App::DocumentObject*>& obj,
         }
     }
 
-    std::vector<DocumentObject*>::const_iterator it;
-    for (it = obj.begin(); it != obj.end(); ++it) {
+    std::vector<App::DocumentObject*> sorted = obj;
+    std::sort(sorted.begin(), sorted.end(), [](App::DocumentObject* a, App::DocumentObject* b) {
+        if(a->getNameInDocument() == nullptr)
+            return true;
+        else if(b->getNameInDocument() == nullptr)
+            return false;
+        else
+            return strcmp(a->getNameInDocument(), b->getNameInDocument()) < 0;
+    });
+    for(DocumentObject* dObj : sorted) {
         writer.Stream() << writer.ind() << "<Object "
-        << "type=\"" << (*it)->getTypeId().getName()     << "\" "
-        << "name=\"" << (*it)->getExportName()       << "\" "
-        << "id=\"" << (*it)->getID()       << "\" ";
+        << "type=\"" << dObj->getTypeId().getName()     << "\" "
+        << "name=\"" << dObj->getExportName()       << "\" "
+        << "id=\"" << dObj->getID()       << "\" ";
 
         // Only write out custom view provider types
-        std::string viewType = (*it)->getViewProviderNameStored();
-        if (viewType != (*it)->getViewProviderName())
+        std::string viewType = dObj->getViewProviderNameStored();
+        if (viewType != dObj->getViewProviderName())
             writer.Stream() << "ViewType=\"" << viewType << "\" ";
 
         // See DocumentObjectPy::getState
-        if ((*it)->testStatus(ObjectStatus::Touch))
+        if (dObj->testStatus(ObjectStatus::Touch))
             writer.Stream() << "Touched=\"1\" ";
-        if ((*it)->testStatus(ObjectStatus::Error)) {
+        if (dObj->testStatus(ObjectStatus::Error)) {
             writer.Stream() << "Invalid=\"1\" ";
-            auto desc = getErrorDescription(*it);
+            auto desc = getErrorDescription(dObj);
             if(desc)
                 writer.Stream() << "Error=\"" << Property::encodeAttribute(desc) << "\" ";
         }
@@ -1936,13 +1954,13 @@ void Document::writeObjects(const std::vector<App::DocumentObject*>& obj,
     writer.Stream() << writer.ind() << "<ObjectData Count=\"" << obj.size() <<"\">" << endl;
 
     writer.incInd(); // indentation for 'Object name'
-    for (it = obj.begin(); it != obj.end(); ++it) {
-        writer.Stream() << writer.ind() << "<Object name=\"" << (*it)->getExportName() << "\"";
-        if((*it)->hasExtensions())
+    for(DocumentObject* dObj : sorted) {
+        writer.Stream() << writer.ind() << "<Object name=\"" << dObj->getExportName() << "\"";
+        if(dObj->hasExtensions())
             writer.Stream() << " Extensions=\"True\"";
 
         writer.Stream() << ">" << endl;
-        (*it)->Save(writer);
+        dObj->Save(writer);
         writer.Stream() << writer.ind() << "</Object>" << endl;
     }
 
