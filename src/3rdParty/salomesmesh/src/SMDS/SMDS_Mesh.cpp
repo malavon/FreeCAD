@@ -57,7 +57,7 @@
 using namespace std;
 
 #ifndef WIN32
-#if !(defined(__MACH__) && defined(__APPLE__))
+#ifdef __linux__
 #include <sys/sysinfo.h>
 #endif
 #include <sys/wait.h>

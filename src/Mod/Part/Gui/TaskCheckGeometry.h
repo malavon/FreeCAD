@@ -27,6 +27,7 @@
 #include <BRepCheck_Analyzer.hxx>
 #include <BRepCheck_Status.hxx>
 #include <Message_ProgressIndicator.hxx>
+#include <Standard_Version.hxx>
 #include <TopTools_MapOfShape.hxx>
 #include <Gui/TaskView/TaskDialog.h>
 #include <Gui/TaskView/TaskView.h>
@@ -147,6 +148,7 @@ private:
     QTextEdit *contentLabel;
 };
 
+#if OCC_VERSION_HEX < 0x070500
 class BOPProgressIndicator : public Message_ProgressIndicator
 {
 public:
@@ -162,6 +164,7 @@ private:
     QTime time;
     QProgressDialog* myProgress;
 };
+#endif
 
 }
 

@@ -71,7 +71,7 @@ else(MSVC)
         FreeCADApp
         ${COIN3D_LIBRARIES}
         ${Boost_LIBRARIES}
-        ${OPENGL_gl_LIBRARY}
+        ${OPENGL_gl_LIBRARY} -L${CMAKE_INSTALL_PREFIX}/lib
         ${3DCONNEXION_LINKFLAGS}
     )
 endif(MSVC)
