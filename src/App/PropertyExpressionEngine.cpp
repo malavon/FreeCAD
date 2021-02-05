@@ -171,13 +171,19 @@ void PropertyExpressionEngine::Save(Base::Writer &writer) const
         writer.incInd();
         PropertyExpressionContainer::Save(writer);
     }
-    for (ExpressionMap::const_iterator it = expressions.begin(); it != expressions.end(); ++it) {
+    // this isn't sorted, even though I'm not sure it would have such an impact
+    // verify where it's used and if this actually needs to be a Map or a Vector<std::pair<>>
+    std::map<App::ObjectIdentifier, ExpressionInfo> sorted;
+    for (auto p : expressions) {
+        sorted[p.first] = p.second; // can we add pairs directly?
+    }
+    for (auto s : sorted) {
         writer.Stream() << writer.ind() << "<Expression path=\"" 
-            << Property::encodeAttribute(it->first.toString()) <<"\" expression=\"" 
-            << Property::encodeAttribute(it->second.expression->toString(true)) << "\"";
-        if (it->second.expression->comment.size() > 0)
+            << Property::encodeAttribute(s.first.toString()) <<"\" expression=\"" 
+            << Property::encodeAttribute(s.second.expression->toString(true)) << "\"";
+        if (s.second.expression->comment.size() > 0)
             writer.Stream() << " comment=\"" 
-                << Property::encodeAttribute(it->second.expression->comment) << "\"";
+                << Property::encodeAttribute(s.second.expression->comment) << "\"";
         writer.Stream() << "/>" << std::endl;
     }
     writer.decInd();

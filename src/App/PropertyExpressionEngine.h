@@ -174,7 +174,7 @@ private:
 
     typedef boost::adjacency_list< boost::listS, boost::vecS, boost::directedS > DiGraph;
     typedef std::pair<int, int> Edge;
-    typedef boost::unordered_map<const App::ObjectIdentifier, ExpressionInfo> ExpressionMap;
+    typedef boost::unordered_map<const App::ObjectIdentifier, ExpressionInfo> ExpressionMap; // why not a std::map? why needs to be unordered?? new code, right? check commit messages
 
     std::vector<App::ObjectIdentifier> computeEvaluationOrder(ExecuteOption option);
 
